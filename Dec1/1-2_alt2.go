@@ -38,7 +38,7 @@ func main() {
 		init[i] = cum
 		i++
 	}
-	net := init[len(init) - 1]
+	net := init[len(init)-1]
 	i = 0
 	timeStart := time.Now().UnixNano()
 
