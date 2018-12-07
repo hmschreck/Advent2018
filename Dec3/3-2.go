@@ -13,10 +13,10 @@ import (
 
 type Claim struct {
 	ClaimNumber int
-	Down int
-	Right int
-	Width int
-	Height int
+	Down        int
+	Right       int
+	Width       int
+	Height      int
 }
 
 func main() {
@@ -60,11 +60,11 @@ func main() {
 		}
 	}
 
-	fmt.Println("Total calculated in... ", time.Now().UnixNano() - start)
+	fmt.Println("Total calculated in... ", time.Now().UnixNano()-start)
 
 	for _, claim := range inputList {
 		clean := true
-		BreakMe:
+	BreakMe:
 		for x := 0; x < claim.Height; x++ {
 			for y := 0; y < claim.Width; y++ {
 				if grid[claim.Down+x][claim.Right+y] > 1 {

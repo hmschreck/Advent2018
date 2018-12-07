@@ -1,4 +1,5 @@
 package main
+
 // performs the task in 4.5-4.75 seconds
 import (
 	"fmt"

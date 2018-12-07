@@ -52,8 +52,8 @@ func main() {
 			fmt.Println(time.Now().UnixNano() - timeStart)
 			fmt.Println(cum)
 			os.Exit(0)
-		// if we haven't seen this number before
-		// we have now
+			// if we haven't seen this number before
+			// we have now
 		} else {
 			freqlist[cum] = true
 		}
