@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-var alphabet = strings.Split("abcdefghijklmnopqrstuvwxyz", "" )
+var alphabet = strings.Split("abcdefghijklmnopqrstuvwxyz", "")
 
 func main() {
 	reader := bufio.NewReader(os.Stdin)
@@ -22,7 +22,7 @@ func main() {
 	cycle := 0
 	for {
 		newCharacter, changes := React(characters)
-		cycle +=1
+		cycle += 1
 		characters = newCharacter
 		if changes == 0 {
 			break
@@ -47,8 +47,8 @@ func main() {
 		}(input, letter, outputChan)
 	}
 	numbers := []int{}
-	for i:=0; i < 26; i++ {
-		numbers = append(numbers, <- outputChan)
+	for i := 0; i < 26; i++ {
+		numbers = append(numbers, <-outputChan)
 	}
 	for _, num := range numbers {
 		if num < minLength {

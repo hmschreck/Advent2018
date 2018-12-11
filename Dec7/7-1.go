@@ -13,56 +13,45 @@ import (
 )
 
 type Step struct {
-	Letter string
-	Prev []*Step
-	Next []*Step
+	Letter    string
+	Prev      []*Step
+	Next      []*Step
 	Completed bool
-	Index int
-	Queued bool
-	Duration int
-	Locked bool
+	Index     int
+	Queued    bool
+	Duration  int
+	Locked    bool
 }
 
 type Worker struct {
 	WorkingOn *Step
 }
 
-type WorkerPool struct{
+type WorkerPool struct {
 	Workers []*Worker
 }
 
+var CAPITALA = int([]rune("A")[0])
+
 func (worker *Worker) Tick(queue *PriorityQueue) {
-	if worker.WorkingOn.Duration == 0 {
-		worker.WorkingOn.Completed = true
+	if worker.WorkingOn == nil || worker.WorkingOn.Duration == 0 || worker.WorkingOn.Completed == true {
 		if queue.Len() > 0 {
 			worker.WorkingOn = heap.Pop(queue).(*Step)
-			if worker.WorkingOn.Locked == true {
-				return
-			}
+		} else {
+			worker.WorkingOn = nil
+			return
 		}
 	}
-	// pull next job
-	if worker.WorkingOn != nil {
-		worker.WorkingOn.Duration -= 1
-	}
+	worker.WorkingOn.Duration -= 1
 	if worker.WorkingOn.Duration == 0 {
-		for _, nextStep := range worker.WorkingOn.Next {
-			allCompleted := true
-			for _, prevStep := range nextStep.Prev {
-				if prevStep.Completed == false {
-					allCompleted = false
-				}
-			}
-			if allCompleted {
-				nextStep.Locked = true
-				heap.Push(queue, nextStep)
-			}
-		}
+		worker.WorkingOn.Completed = true
 	}
 }
 
-func CreateWorkerPool(len int) (pool *WorkerPool) {
-	pool.Workers = make([]*Worker, len)
+func CreateWorkerPool(len int) (pool WorkerPool) {
+	for i := 0; i < len; i++ {
+		pool.Workers = append(pool.Workers, &Worker{})
+	}
 	return
 }
 
@@ -95,11 +84,11 @@ func (pq *PriorityQueue) Push(x interface{}) {
 	*pq = append(*pq, step)
 }
 
-func (pq *PriorityQueue) Pop() interface {} {
+func (pq *PriorityQueue) Pop() interface{} {
 	old := *pq
 	n := len(old)
 	step := old[n-1]
-	step.Index = n-1
+	step.Index = n - 1
 	*pq = old[0 : n-1]
 	return step
 }
@@ -112,7 +101,7 @@ var StepsList = make(map[string]*Step, 0)
 var StepOrder = []string{}
 
 func main() {
-	timeStart := time.Now().UnixNano()
+	//timeStart := time.Now().UnixNano()
 	stepsRegex := regexp.MustCompile("Step (.) must be finished before step (.) can begin.")
 	inputList := []string{}
 	reader := bufio.NewReader(os.Stdin)
@@ -128,15 +117,14 @@ func main() {
 	}
 	for _, line := range inputList {
 		steps := stepsRegex.FindStringSubmatch(line)
-		StepsList[steps[1]] = &Step{Letter: steps[1], Duration: int(([]rune(steps[1])))}
-		StepsList[steps[2]] = &Step{Letter: steps[2]}
+		StepsList[steps[1]] = &Step{Letter: steps[1], Duration: int([]rune(steps[1])[0]) - CAPITALA + 1 + 60}
+		StepsList[steps[2]] = &Step{Letter: steps[2], Duration: int([]rune(steps[2])[0]) - CAPITALA + 1 + 60}
 	}
 	for _, line := range inputList {
 		steps := stepsRegex.FindStringSubmatch(line)
 		StepsList[steps[1]].Next = append(StepsList[steps[1]].Next, StepsList[steps[2]])
 		StepsList[steps[2]].Prev = append(StepsList[steps[2]].Prev, StepsList[steps[1]])
 	}
-
 
 	// Find start
 	firstStep := Step{Letter: "", Duration: 0}
@@ -149,32 +137,49 @@ func main() {
 	heap.Init(&pq)
 	StepThrough(&firstStep, &pq)
 	fmt.Println(strings.Join(StepOrder, ""))
-	fmt.Println(time.Now().UnixNano() - timeStart)
 
-
+	for _, step := range StepsList {
+		step.Completed = false
+	}
 	pq2 := make(PriorityQueue, 0)
 	heap.Init(&pq2)
-	workerpool := *CreateWorkerPool(5)
+	for _, step := range StepsList {
+		step.Completed = false
+		step.Queued = false
+	}
+	pool := CreateWorkerPool(5)
 	tick := 0
+	startTimePart2 := time.Now().UnixNano()
+OuterLoop:
 	for {
 		allCompleted := true
 		for _, step := range StepsList {
+			if step.Completed == false && step.Queued == false {
+				prevDone := true
+				for _, prev := range step.Prev {
+					if prev.Completed == false {
+						prevDone = false
+					}
+				}
+				if prevDone == false {
+					continue
+				}
+				step.Queued = true
+				heap.Push(&pq2, step)
+			}
 			if step.Completed == false {
 				allCompleted = false
 			}
-			break
 		}
-		if allCompleted == false {
-			workerpool.Tick(&pq2)
-			tick += 1
-		} else {
-			break
+		if allCompleted {
+			break OuterLoop
 		}
+		tick += 1
+		pool.Tick(&pq2)
 	}
 	fmt.Println(tick)
+	fmt.Println("Part two completed in ", float64((time.Now().UnixNano()-startTimePart2))/1000000.0, " milliseconds")
 }
-
-
 
 func StepThrough(step *Step, queue *PriorityQueue) {
 	StepOrder = append(StepOrder, step.Letter)
@@ -186,14 +191,13 @@ func StepThrough(step *Step, queue *PriorityQueue) {
 				allCompleted = false
 			}
 		}
-		if allCompleted == true{
+		if allCompleted == true {
 			if nextStep.Queued == false {
 				nextStep.Queued = true
 				heap.Push(queue, nextStep)
 
 			}
 		}
-
 
 	}
 	if queue.Len() > 0 {

@@ -94,12 +94,12 @@ func main() {
 	}
 	fmt.Println(time.Now().UnixNano() - timestart)
 	timeStart := time.Now().UnixNano()
-//	timesort := func(log1, log2 *LogEntry) bool {
-//		return log1.Timestamp.Before(log2.Timestamp)
-//	}
+	//	timesort := func(log1, log2 *LogEntry) bool {
+	//		return log1.Timestamp.Before(log2.Timestamp)
+	//	}
 	guardList := new(Guards)
 	guardList.List = make(map[int]Guard, 0)
-//	By(timesort).Sort(inputList)
+	//	By(timesort).Sort(inputList)
 	currentGuard := 0
 	for i, entry := range inputList {
 		if entry.Guard == 0 {

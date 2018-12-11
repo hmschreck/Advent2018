@@ -10,10 +10,10 @@ import (
 	"strings"
 )
 
-const ADD=0
+const ADD = 0
 
 type CellNucleus struct {
-	X, Y int
+	X, Y     int
 	Contents []Cell
 }
 
@@ -44,9 +44,9 @@ func main() {
 		inputList = append(inputList, newEntry)
 	}
 	fmt.Println(inputList)
-	grid := make([][]int, maxY + ADD/2)
+	grid := make([][]int, maxY+ADD/2)
 	for i := range grid {
-		grid[i] = make([]int, maxX + ADD/2)
+		grid[i] = make([]int, maxX+ADD/2)
 	}
 
 	for i := range grid {
@@ -60,10 +60,10 @@ func main() {
 				distanceX := cell.X - nucleus.X
 				distanceY := cell.Y - nucleus.Y
 				if distanceX < 0 {
-					distanceX = 0 -distanceX
+					distanceX = 0 - distanceX
 				}
 				if distanceY < 0 {
-					distanceY = 0-distanceY
+					distanceY = 0 - distanceY
 				}
 				distances[k] = distanceX + distanceY
 			}
@@ -75,10 +75,10 @@ func main() {
 		}
 	}
 	NonInfiniteCells := []CellNucleus{}
-	CellLoop:
+CellLoop:
 	for _, wholeCell := range inputList {
 		for _, cell := range wholeCell.Contents {
-			if cell.X == 0 || cell.Y == 0 || cell.X == maxX + ADD/2 -1|| cell.Y ==maxY + ADD/2 -1 {
+			if cell.X == 0 || cell.Y == 0 || cell.X == maxX+ADD/2-1 || cell.Y == maxY+ADD/2-1 {
 				continue CellLoop
 			}
 		}
@@ -115,9 +115,9 @@ func main() {
 func GenerateCell(input string) (output CellNucleus) {
 	nums := strings.Split(input, ",")
 	output.X, _ = strconv.Atoi(nums[0])
-	output.X += ADD/2
+	output.X += ADD / 2
 	output.Y, _ = strconv.Atoi(strings.Replace(nums[1], " ", "", 1))
-	output.Y += ADD/2
+	output.Y += ADD / 2
 	return
 }
 
