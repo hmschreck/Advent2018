@@ -9,7 +9,9 @@ import (
 )
 
 var serial = 0
+
 const XY = 300
+
 var grid = [][]int{}
 
 func main() {
@@ -37,7 +39,7 @@ func main() {
 			}
 		}
 	}
-	fmt.Println(maxX,",",maxY)
+	fmt.Println(maxX, ",", maxY)
 	timeStart := time.Now().UnixNano()
 	sumTable := GenerateSumTable(grid)
 	maxValue = 0
@@ -47,11 +49,11 @@ func main() {
 	for j := 0; j < 300; j++ {
 		for i := 0; i < 300; i++ {
 			A := sumTable[i][j]
-			for size := 1; i + size < 300 && j + size < 300; size++ {
+			for size := 1; i+size < 300 && j+size < 300; size++ {
 				D := sumTable[i+size][j+size]
 				C := sumTable[i][j+size]
 				B := sumTable[i+size][j]
-				sum := D+A-C-B
+				sum := D + A - C - B
 				if sum > maxValue {
 					maxValue = sum
 					maxX = j + 2 // these are +2 because of the bounding boxes for the sum tables
@@ -68,7 +70,7 @@ func main() {
 func Calculate3x3(x, y int) (output int) {
 	sum := 0
 	for yplus := 0; yplus < 3; yplus++ {
-		for xplus := 0; xplus <3; xplus++ {
+		for xplus := 0; xplus < 3; xplus++ {
 			sum += grid[y+yplus][x+xplus]
 		}
 	}
@@ -76,7 +78,7 @@ func Calculate3x3(x, y int) (output int) {
 	return
 }
 
-func GenerateSumTable(grid [][]int) (output [][]int){
+func GenerateSumTable(grid [][]int) (output [][]int) {
 	output = make([][]int, XY)
 	for row := range output {
 		output[row] = make([]int, XY)
