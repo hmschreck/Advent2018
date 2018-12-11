@@ -5,6 +5,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 var serial = 0
@@ -37,21 +38,31 @@ func main() {
 		}
 	}
 	fmt.Println(maxX,",",maxY)
-
-	maxChannel := make(chan *MaxCell, 90000)
-	for y := 0; y < XY; y++ {
-		for x := 0; x < XY; x++ {
-			go CalculateMax(x, y, maxChannel)
+	timeStart := time.Now().UnixNano()
+	sumTable := GenerateSumTable(grid)
+	maxValue = 0
+	maxX = -1
+	maxY = -1
+	maxSize := -1
+	for j := 0; j < 300; j++ {
+		for i := 0; i < 300; i++ {
+			A := sumTable[i][j]
+			for size := 1; i + size < 300 && j + size < 300; size++ {
+				D := sumTable[i+size][j+size]
+				C := sumTable[i][j+size]
+				B := sumTable[i+size][j]
+				sum := D+A-C-B
+				if sum > maxValue {
+					maxValue = sum
+					maxX = j + 2 // these are +2 because of the bounding boxes for the sum tables
+					maxY = i + 2
+					maxSize = size
+				}
+			}
 		}
 	}
-	maxResult := new(MaxCell)
-	for i := 0; i < 90000; i++ {
-		input := <-maxChannel
-		if input.Max > maxResult.Max {
-			maxResult = input
-		}
-	}
-	fmt.Println(maxResult.X,",",maxResult.Y,",",maxResult.Size)
+	fmt.Println(maxX, ",", maxY, ",", maxSize)
+	fmt.Println("Took ", float64(time.Now().UnixNano()-timeStart)/1000000, " milliseconds")
 }
 
 func Calculate3x3(x, y int) (output int) {
@@ -65,42 +76,28 @@ func Calculate3x3(x, y int) (output int) {
 	return
 }
 
-type MaxCell struct {
-	X int
-	Y int
-	Size int
-	Max int
-}
-
-func CalculateMax(x, y int, outputChannel chan *MaxCell) {
-	output := new(MaxCell)
-	max := 0
-	maxSize := -1
-	output.X = x + 1
-	output.Y = y + 1
-	maxFails := 5
-	fails := 0
-	for i := 1; i + x < 300 && i + y < 300; i++ {
-		sum := 0
-		for yplus := 0; yplus < i; yplus++ {
-			for xplus := 0; xplus < i; xplus++ {
-				sum += grid[y+yplus][x+xplus]
+func GenerateSumTable(grid [][]int) (output [][]int){
+	output = make([][]int, XY)
+	for row := range output {
+		output[row] = make([]int, XY)
+	}
+	for j := range grid {
+		for i := range grid[j] {
+			total := 0
+			total += grid[i][j]
+			if i > 0 {
+				total += output[i-1][j]
 			}
-		}
-		if sum > max {
-			max = sum
-			maxSize = i
-			fails = 0
-		} else {
-			fails += 1
-			if fails == maxFails {
-				break
+			if j > 0 {
+				total += output[i][j-1]
 			}
+			if i > 0 && j > 0 {
+				total -= output[i-1][j-1]
+			}
+			output[i][j] = total
 		}
 	}
-	output.Max = max
-	output.Size = maxSize
-	outputChannel <- output
+	return
 }
 
 func CalculateFuelCell(x, y int) (output int) {
